@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Instant};
 
 fn get_input_string() -> String {
     std::include_str!("../input.txt").to_string()
@@ -46,6 +46,21 @@ fn part2() -> isize {
 }
 
 fn main() {
-    println!("part 1: {}", part1());
-    println!("part 2: {}", part2());
+    let start = Instant::now();
+    let solution = part1();
+    let end = Instant::now();
+    println!(
+        "part 1: {} complete in {}",
+        solution,
+        (end - start).as_nanos()
+    );
+
+    let start = Instant::now();
+    let solution = part2();
+    let end = Instant::now();
+    println!(
+        "part 2: {} complete in {}",
+        solution,
+        (end - start).as_nanos()
+    );
 }
