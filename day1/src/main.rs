@@ -1,21 +1,18 @@
 use std::{collections::HashMap, time::Instant};
 
-fn get_input_string() -> String {
-    std::include_str!("../input.txt").to_string()
-}
+const INPUT: &str = std::include_str!("../input.txt");
 
-fn part1() -> isize {
-    let contents = get_input_string();
-    let mut first_list: Vec<isize> = Vec::new();
-    let mut second_list: Vec<isize> = Vec::new();
-    for line in contents.lines() {
+fn part1() -> i32 {
+    let mut first_list: Vec<i32> = Vec::new();
+    let mut second_list: Vec<i32> = Vec::new();
+    for line in INPUT.lines() {
         let parts: Vec<&str> = line.split_whitespace().collect();
         first_list.push(parts[0].parse().unwrap());
         second_list.push(parts[1].parse().unwrap());
     }
     first_list.sort();
     second_list.sort();
-    let sum_of_differences: isize = first_list
+    let sum_of_differences: i32 = first_list
         .into_iter()
         .zip(second_list)
         .map(|(a, b)| (a - b).abs())
@@ -23,12 +20,11 @@ fn part1() -> isize {
     sum_of_differences
 }
 
-fn part2() -> isize {
-    let contents = get_input_string();
-    let mut first_list: Vec<isize> = Vec::new();
-    let mut second_list_counts: HashMap<isize, isize> = HashMap::new();
-    for line in contents.lines() {
-        let parts: Vec<isize> = line
+fn part2() -> i32 {
+    let mut first_list: Vec<i32> = Vec::new();
+    let mut second_list_counts: HashMap<i32, i32> = HashMap::new();
+    for line in INPUT.lines() {
+        let parts: Vec<i32> = line
             .split_whitespace()
             .map(|n| n.parse().unwrap())
             .collect();
@@ -38,7 +34,7 @@ fn part2() -> isize {
             second_list_counts.get(&parts[1]).unwrap_or(&0) + 1,
         );
     }
-    let similarity_score: isize = first_list
+    let similarity_score: i32 = first_list
         .into_iter()
         .map(|i| i * second_list_counts.get(&i).unwrap_or(&0))
         .sum();
@@ -52,7 +48,7 @@ fn main() {
     println!(
         "part 1: {} complete in {}",
         solution,
-        (end - start).as_nanos()
+        (end - start).as_micros()
     );
 
     let start = Instant::now();
@@ -61,6 +57,6 @@ fn main() {
     println!(
         "part 2: {} complete in {}",
         solution,
-        (end - start).as_nanos()
+        (end - start).as_micros()
     );
 }
