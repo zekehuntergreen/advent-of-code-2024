@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 fn get_input_string() -> String {
-    std::fs::read_to_string("input.txt").expect("Failed to read file")
+    std::include_str!("../input.txt").to_string()
 }
 
 fn part1() -> isize {
