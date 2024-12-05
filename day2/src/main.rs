@@ -10,7 +10,7 @@ fn parse_two_digit_number(array: &[u8]) -> i32 {
     (array[0] - b'0') as i32 * 10 + (array[1] - b'0') as i32
 }
 
-fn report_is_safe(report: &Vec<i32>) -> bool {
+fn report_is_safe(report: &[i32]) -> bool {
     let asc = report[1] > report[0];
     !report.windows(2).any(|w| {
         let diff = if asc { w[1] - w[0] } else { w[0] - w[1] };
@@ -21,13 +21,9 @@ fn report_is_safe(report: &Vec<i32>) -> bool {
 fn part1() -> usize {
     INPUT
         .split(|&b| b == b'\n')
-        .map(|report| {
-            report
-                .split(|&b| b == b' ')
-                .map(parse_two_digit_number)
-                .collect()
-        })
-        .filter(report_is_safe)
+        .map(|report| report.split(|&b| b == b' ').map(parse_two_digit_number))
+        .map(|report| report.collect::<Vec<i32>>())
+        .filter(|v| report_is_safe(&v))
         .count()
 }
 
