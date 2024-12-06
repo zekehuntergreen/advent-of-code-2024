@@ -1,8 +1,7 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, time::Instant};
 
-const INPUT: &[u8] = include_bytes!("test_input.txt");
+const INPUT: &[u8] = include_bytes!("input.txt");
 
-// fn find_starting_position
 #[derive(Debug, Eq, Hash, PartialEq, Clone)]
 enum Direction {
     Up,
@@ -40,40 +39,86 @@ fn get_next_coordinates(
     return (next_row, next_col);
 }
 
-fn main() {
-    let matrix: Vec<&[u8]> = INPUT.split(|&b| b == b'\n').collect();
-    let mut current_row = matrix.iter().position(|row| row.contains(&b'^')).unwrap();
-    let mut current_col = matrix[current_row]
-        .iter()
-        .position(|value| value == &b'^')
-        .unwrap();
+fn calculate_path(
+    matrix: &Vec<&[u8]>,
+    start_row: usize,
+    start_col: usize,
+    obstruction: Option<(usize, usize)>,
+) -> (Vec<(usize, usize, Direction)>, bool) {
+    // let matrix: Vec<&[u8]> = INPUT.split(|&b| b == b'\n').collect();
+    let (mut current_row, mut current_col) = (start_row, start_col);
     let mut direction = Direction::Up;
     let num_cols = matrix[0].len();
     let num_rows = matrix.len();
-    println!("num rows {} num cols {}", num_rows, num_cols);
     let (mut next_row, mut next_col) = get_next_coordinates((current_row, current_col), &direction);
-
-    let mut steps: HashSet<(usize, usize)> = HashSet::new();
-    let mut steps_with_direction: HashSet<(usize, usize, Direction)> = HashSet::new();
+    let mut steps_with_direction: Vec<(usize, usize, Direction)> = Vec::new();
     while next_col < num_cols && next_col >= 0 && next_row < num_rows && next_row >= 0 {
-        steps.insert((current_row, current_col));
-        steps_with_direction.insert((current_row, current_col, direction.clone()));
+        steps_with_direction.push((current_row, current_col, direction.clone()));
 
-        match matrix[next_row][next_col] {
-            b'#' => direction = direction.next(),
-            _ => {
-                (current_row, current_col) = (next_row, next_col);
+        if Some((next_row, next_col)) == obstruction {
+            direction = direction.next()
+        } else {
+            match matrix[next_row][next_col] {
+                b'#' => direction = direction.next(),
+                _ => {
+                    (current_row, current_col) = (next_row, next_col);
+                }
             }
         }
 
         // inspect the next spot
         (next_row, next_col) = get_next_coordinates((current_row, current_col), &direction);
+        if steps_with_direction.contains(&(next_row, next_col, direction.clone())) {
+            return (steps_with_direction, true);
+        }
     }
-    steps.insert((next_row, next_col));
-    steps_with_direction.insert((next_row, next_col, direction.clone()));
+    steps_with_direction.push((current_row, current_col, direction.clone()));
+    return (steps_with_direction, false);
+}
 
-    println!("{:?}", steps);
+fn main() {
+    let matrix: Vec<&[u8]> = INPUT.split(|&b| b == b'\n').collect();
+    let start_row = matrix.iter().position(|row| row.contains(&b'^')).unwrap();
+    let start_col = matrix[start_row]
+        .iter()
+        .position(|value| value == &b'^')
+        .unwrap();
+
+    // part 1
+    let start = Instant::now();
+    let (steps_with_direction, _) = calculate_path(&matrix, start_row, start_col, None);
+    let steps: HashSet<(usize, usize)> = HashSet::from_iter(
+        steps_with_direction
+            .clone()
+            .into_iter()
+            .map(|step| (step.0, step.1)),
+    );
+
     let num_steps = steps.len();
-    // assert!(num_steps == 5531);
-    println!("num steps {:?}", num_steps);
+    println!(
+        "part 1 {:?} completed in {}",
+        num_steps,
+        (Instant::now() - start).as_millis()
+    );
+    assert!(num_steps == 5531);
+
+    // part 2
+    let start = Instant::now();
+    let num_steps_with_directions = steps_with_direction.len();
+    let obstructions: Vec<(usize, (usize, usize))> = steps
+        .into_iter()
+        .enumerate()
+        .filter(|(i, possible_obstruction)| {
+            println!("{} of {}", i, num_steps_with_directions);
+            let (_path, contains_cycle) =
+                calculate_path(&matrix, start_row, start_col, Some(*possible_obstruction));
+            contains_cycle
+        })
+        .collect();
+    assert!(obstructions.len() == 2165);
+    println!(
+        "part 2 {} completed in {}",
+        obstructions.len(),
+        (Instant::now() - start).as_millis()
+    );
 }
