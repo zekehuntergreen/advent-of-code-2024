@@ -44,6 +44,8 @@ fn valid_expression(
 }
 
 fn main() {
+    let start = Instant::now();
+
     let solution: (usize, usize) = INPUT
         .lines()
         .map(|line| {
@@ -75,13 +77,15 @@ fn main() {
             (0usize, 0usize),
             |(part1_total, part2_total), (part1, part2)| (part1_total + part1, part2_total + part2),
         );
-    let start = Instant::now();
+
+    let end = Instant::now();
     assert!(solution.0 == 21572148763543);
     assert!(solution.1 == 581941094529163);
+
     println!(
-        "part1 {} part2 {} \nfinished in {} nanos",
+        "part1 {} part2 {} \nfinished in {} milliseconds",
         solution.0,
         solution.1,
-        (Instant::now() - start).as_nanos()
+        (end - start).as_millis()
     )
 }
