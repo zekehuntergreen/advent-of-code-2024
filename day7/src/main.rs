@@ -31,11 +31,8 @@ fn valid_expression(
         },
         index + 1,
         part2,
-    ) || {
-        if !part2 {
-            return false;
-        }
-        valid_expression(
+    ) || part2
+        && valid_expression(
             numbers,
             target,
             (current_total.to_string() + &numbers[index].to_string())
@@ -44,7 +41,6 @@ fn valid_expression(
             index + 1,
             part2,
         )
-    }
 }
 
 fn main() {
@@ -83,7 +79,7 @@ fn main() {
     assert!(solution.0 == 21572148763543);
     assert!(solution.1 == 581941094529163);
     println!(
-        "part1 {} part2 {} \nfound in {} nanos",
+        "part1 {} part2 {} \nfinished in {} nanos",
         solution.0,
         solution.1,
         (Instant::now() - start).as_nanos()
