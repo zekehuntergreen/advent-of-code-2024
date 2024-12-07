@@ -2,34 +2,53 @@ use std::time::Instant;
 
 const INPUT: &str = include_str!("input.txt");
 
-fn valid_expression(numbers: &[usize], target: usize, current_total: usize, index: usize) -> bool {
-    // println!(
-    //     "numbers {:?} target {} current_total {} index {}",
-    //     numbers, target, current_total, index
-    // );
+fn valid_expression(
+    numbers: &[usize],
+    target: usize,
+    current_total: usize,
+    index: usize,
+    part2: bool,
+) -> bool {
     if current_total > target {
         return false;
     }
-    let next_index = index + 1;
-    if next_index == numbers.len() {
-        current_total == target
-    } else {
+    if index == numbers.len() {
+        return current_total == target;
+    }
+    valid_expression(
+        numbers,
+        target,
+        current_total + numbers[index],
+        index + 1,
+        part2,
+    ) || valid_expression(
+        numbers,
+        target,
+        if current_total == 0 {
+            numbers[index]
+        } else {
+            current_total * numbers[index]
+        },
+        index + 1,
+        part2,
+    ) || {
+        if !part2 {
+            return false;
+        }
         valid_expression(
             numbers,
             target,
-            current_total + numbers[next_index],
-            next_index,
-        ) || valid_expression(
-            numbers,
-            target,
-            current_total * numbers[next_index],
-            next_index,
+            (current_total.to_string() + &numbers[index].to_string())
+                .parse::<usize>()
+                .unwrap(),
+            index + 1,
+            part2,
         )
     }
 }
 
 fn main() {
-    let solution: usize = INPUT
+    let solution: (usize, usize) = INPUT
         .lines()
         .map(|line| {
             let mut s = line.split(':');
@@ -44,17 +63,29 @@ fn main() {
             (target, numbers)
         })
         .map(|(target, numbers)| {
-            if valid_expression(&numbers, target, numbers[0], 0) {
+            let part1 = if valid_expression(&numbers, target, 0, 0, false) {
                 target
             } else {
                 0
-            }
+            };
+            let part2 = if valid_expression(&numbers, target, 0, 0, true) {
+                target
+            } else {
+                0
+            };
+            (part1, part2)
         })
-        .sum();
+        .fold(
+            (0usize, 0usize),
+            |(part1_total, part2_total), (part1, part2)| (part1_total + part1, part2_total + part2),
+        );
     let start = Instant::now();
-    assert!(21572148763543 == solution);
+    assert!(solution.0 == 21572148763543);
+    assert!(solution.1 == 581941094529163);
     println!(
-        "solution found in {} nanos",
+        "part1 {} part2 {} \nfound in {} nanos",
+        solution.0,
+        solution.1,
         (Instant::now() - start).as_nanos()
     )
 }
