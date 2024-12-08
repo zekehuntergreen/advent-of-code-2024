@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use fnv::{FnvHashMap, FnvHashSet};
 use itertools::Itertools;
 
@@ -5,12 +7,40 @@ const INPUT: &[u8] = include_bytes!("input.txt");
 // const MATRIX_SIZE: isize = 12;
 const MATRIX_SIZE: isize = 50;
 
-fn coordinates_in_matrix(x: isize, y: isize) -> bool {
-    x >= 0 && x < MATRIX_SIZE && y >= 0 && y < MATRIX_SIZE
+fn coordinates_in_matrix(c: (isize, isize)) -> bool {
+    c.0 >= 0 && c.0 < MATRIX_SIZE && c.1 >= 0 && c.1 < MATRIX_SIZE
 }
 
-fn main() {
-    let num_antinode_locations = INPUT
+fn get_next_antinode(
+    a: &(isize, isize),
+    diff: &(isize, isize),
+    direction: isize,
+) -> (isize, isize) {
+    (a.0 + (diff.0 * direction), a.1 + (diff.1 * direction))
+}
+
+fn find_direction_antinodes(
+    antenna: &(isize, isize),
+    diff: &(isize, isize),
+    direction: isize,
+    part2: bool,
+) -> FnvHashSet<(isize, isize)> {
+    let mut new_antinodes = FnvHashSet::default();
+
+    let mut antinode = if part2 {
+        *antenna
+    } else {
+        get_next_antinode(antenna, diff, direction)
+    };
+    while coordinates_in_matrix(antinode) && (part2 || new_antinodes.is_empty()) {
+        new_antinodes.insert(antinode);
+        antinode = get_next_antinode(&antinode, diff, direction)
+    }
+    new_antinodes
+}
+
+fn find_num_antinodes(part2: bool) -> usize {
+    INPUT
         .split(|b| b == &b'\n')
         .enumerate()
         .fold(FnvHashMap::default(), |mut acc, (i, row)| {
@@ -25,20 +55,33 @@ fn main() {
         })
         .iter()
         .fold(FnvHashSet::default(), |mut acc, (_, locations)| {
-            for c in locations.into_iter().combinations(2) {
-                let (a1, a2) = (c[0], c[1]);
+            for antenna_combination in locations.into_iter().combinations(2) {
+                let (a1, a2) = (antenna_combination[0], antenna_combination[1]);
                 let diff = (a1.0 - a2.0, a1.1 - a2.1);
-                let antinode1 = (a1.0 + diff.0, a1.1 + diff.1);
-                let antinode2 = (a2.0 - diff.0, a2.1 - diff.1);
-                for a in [antinode1, antinode2] {
-                    if coordinates_in_matrix(a.0, a.1) {
-                        acc.insert(a);
-                    }
-                }
+                acc.extend(find_direction_antinodes(a1, &diff, 1, part2));
+                acc.extend(find_direction_antinodes(a2, &diff, -1, part2));
             }
-
             acc
         })
-        .len();
-    println!("locations {:?} ", num_antinode_locations);
+        .len()
+}
+
+fn main() {
+    let start = Instant::now();
+    let antinode_locations = find_num_antinodes(false);
+    assert!(antinode_locations == 220);
+    println!(
+        "part1 {} finished in {} nanos",
+        antinode_locations,
+        (Instant::now() - start).as_nanos()
+    );
+
+    let start = Instant::now();
+    let antinode_locations = find_num_antinodes(true);
+    assert!(antinode_locations == 813);
+    println!(
+        "part2 {} finished in {} nanos",
+        antinode_locations,
+        (Instant::now() - start).as_nanos()
+    );
 }
