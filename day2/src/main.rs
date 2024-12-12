@@ -21,8 +21,12 @@ fn report_is_safe(report: &[i32]) -> bool {
 fn part1() -> usize {
     INPUT
         .split(|&b| b == b'\n')
-        .map(|report| report.split(|&b| b == b' ').map(parse_two_digit_number))
-        .map(|report| report.collect::<Vec<i32>>())
+        .map(|report| {
+            report
+                .split(|&b| b == b' ')
+                .map(parse_two_digit_number)
+                .collect::<Vec<i32>>()
+        })
         .filter(|v| report_is_safe(&v))
         .count()
 }
